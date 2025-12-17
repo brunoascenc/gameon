@@ -21,11 +21,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
+import { signUp } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const formSchema = z
   .object({
     email: z.email("E-mail inválido"),
     username: z.string().min(1, "Username inválido"),
+    name: z.string().min(4, "Nome inválido"),
     password: z.string().min(6, "Sua senha deve ter pelo menos 6 caracteres"),
     terms: z.boolean().refine((value) => value === true, {
       message: "Você precisa aceitar os termos de uso",
@@ -40,6 +43,8 @@ const formSchema = z
   });
 
 export function SignUpForm() {
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,12 +52,36 @@ export function SignUpForm() {
       password: "",
       confirmPassword: "",
       username: "",
+      name: "",
       terms: false,
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    try {
+      await signUp.email(
+        {
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          username: data.username,
+        },
+        {
+          onRequest: (ctx) => {
+            //show loading
+          },
+          onSuccess: (ctx) => {
+            router.push("/");
+          },
+          onError: (ctx) => {
+            // display the error message
+            alert(ctx.error.message);
+          },
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
@@ -71,6 +100,22 @@ export function SignUpForm() {
       <CardContent>
         <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Input
+                  {...field}
+                  id="name"
+                  type="text"
+                  aria-invalid={fieldState.invalid}
+                  label="Nome"
+                  placeholder="Digite o seu nome"
+                  autoComplete="new-password"
+                  errors={fieldState.error}
+                />
+              )}
+            />
             <Controller
               name="email"
               control={form.control}
