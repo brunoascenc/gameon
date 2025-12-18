@@ -23,6 +23,7 @@ import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const formSchema = z
   .object({
@@ -44,6 +45,7 @@ const formSchema = z
 
 export function SignUpForm() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,30 +60,28 @@ export function SignUpForm() {
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    try {
-      await signUp.email(
-        {
-          email: data.email,
-          password: data.password,
-          name: data.name,
-          username: data.username,
+    await signUp.email(
+      {
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        username: data.username,
+      },
+      {
+        onRequest: () => {
+          setLoading(true);
         },
-        {
-          onRequest: (ctx) => {
-            //show loading
-          },
-          onSuccess: (ctx) => {
-            router.push("/");
-          },
-          onError: (ctx) => {
-            // display the error message
-            alert(ctx.error.message);
-          },
-        }
-      );
-    } catch (err) {
-      console.log(err);
-    }
+        onSuccess: () => {
+          setLoading(false);
+          router.push("/");
+        },
+        onError: (ctx) => {
+          console.log(ctx);
+          setLoading(false);
+          alert(ctx.error.message);
+        },
+      }
+    );
   }
 
   return (
@@ -214,7 +214,12 @@ export function SignUpForm() {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        <Button type="submit" className="w-full" form="signup-form">
+        <Button
+          isLoading={loading}
+          type="submit"
+          className="w-full"
+          form="signup-form"
+        >
           Realizar cadastro
         </Button>
       </CardFooter>
