@@ -23,7 +23,10 @@ import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 const formSchema = z
   .object({
@@ -46,6 +49,10 @@ const formSchema = z
 export function SignUpForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    show: false,
+    description: "",
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,13 +79,19 @@ export function SignUpForm() {
           setLoading(true);
         },
         onSuccess: () => {
+          toast.success("Cadastro realizado com sucesso!");
           setLoading(false);
           router.push("/");
         },
         onError: (ctx) => {
-          console.log(ctx);
           setLoading(false);
-          alert(ctx.error.message);
+          setError({
+            show: true,
+            description: ctx.error.message,
+          });
+          toast.error("Erro ao realizar cadastro.", {
+            description: ctx.error.message,
+          });
         },
       }
     );
@@ -212,6 +225,13 @@ export function SignUpForm() {
             />
           </FieldGroup>
         </form>
+        {error.show && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircleIcon />
+            <AlertTitle>Erro ao realizar cadastro</AlertTitle>
+            <AlertDescription>{error.description}</AlertDescription>
+          </Alert>
+        )}
       </CardContent>
       <CardFooter className="flex-col gap-2">
         <Button
