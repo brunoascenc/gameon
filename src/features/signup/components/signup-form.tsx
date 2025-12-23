@@ -84,7 +84,6 @@ export function SignUpForm() {
         },
         onError: (ctx) => {
           setLoading(false);
-          console.log(ctx.error.code)
           showError(getErrorMessage(ctx.error.code));
           toast.error("Erro ao realizar cadastro", {
             description: getErrorMessage(ctx.error.code),
