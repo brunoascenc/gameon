@@ -12,7 +12,7 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormError } from "@/hooks/useFormError";
+import { useFormError } from "@/hooks/use-form-error";
 import { getErrorMessage, signIn } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";

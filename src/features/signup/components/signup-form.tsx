@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import z from "zod";
 import { getErrorMessage, signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -27,20 +27,24 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
-import { useFormError } from "@/hooks/useFormError";
+import { useFormError } from "@/hooks/use-form-error";
+import { PasswordRequirements } from "./password-requirements";
 
 const formSchema = z
   .object({
     email: z.email("E-mail inválido"),
     username: z.string().min(1, "Username inválido"),
     name: z.string().min(4, "Nome inválido"),
-    password: z.string().min(6, "Sua senha deve ter pelo menos 6 caracteres"),
+    password: z
+      .string()
+      .min(6, "Sua senha deve ter pelo menos 6 caracteres")
+      .regex(/[A-Z]/, "Sua senha deve ter pelo menos uma letra maiúscula")
+      .regex(/[a-z]/, "Sua senha deve ter pelo menos uma letra minúscula")
+      .regex(/[0-9]/, "Sua senha deve ter pelo menos um número"),
     terms: z.boolean().refine((value) => value === true, {
       message: "Você precisa aceitar os termos de uso",
     }),
-    confirmPassword: z
-      .string()
-      .min(6, "Sua senha deve ter pelo menos 6 caracteres"),
+    confirmPassword: z.string().min(1, { message: "Campo obrigatório" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não são iguais",
@@ -157,38 +161,41 @@ export function SignUpForm() {
                 />
               )}
             />
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Input
-                  {...field}
-                  id="password"
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  errors={fieldState.error}
-                  placeholder="Digite a sua senha"
-                  label="Senha"
-                  autoComplete="new-password"
-                />
-              )}
-            />
-            <Controller
-              name="confirmPassword"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Input
-                  {...field}
-                  id="confirmPassword"
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  errors={fieldState.error}
-                  label="Confirmar senha"
-                  autoComplete="new-password"
-                  placeholder="Confirme a sua senha"
-                />
-              )}
-            />
+            <div>
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Input
+                    {...field}
+                    id="password"
+                    type="password"
+                    aria-invalid={fieldState.invalid}
+                    errors={fieldState.error}
+                    placeholder="Digite a sua senha"
+                    label="Senha"
+                    autoComplete="new-password"
+                  />
+                )}
+              />
+              <PasswordRequirements password={form.watch("password")} />
+              <Controller
+                name="confirmPassword"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Input
+                    {...field}
+                    id="confirmPassword"
+                    type="password"
+                    aria-invalid={fieldState.invalid}
+                    errors={fieldState.error}
+                    label="Confirmar senha"
+                    autoComplete="new-password"
+                    placeholder="Confirme a sua senha"
+                  />
+                )}
+              />
+            </div>
             <Controller
               name="terms"
               control={form.control}
