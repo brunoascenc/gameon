@@ -21,12 +21,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
-import { signUp } from "@/lib/auth-client";
+import { getErrorMessage, signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
+import { useFormError } from "@/hooks/useFormError";
 
 const formSchema = z
   .object({
@@ -49,10 +50,6 @@ const formSchema = z
 export function SignUpForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState({
-    show: false,
-    description: "",
-  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +62,8 @@ export function SignUpForm() {
       terms: false,
     },
   });
+
+  const { error, showError } = useFormError(form.watch);
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     await signUp.email(
@@ -85,12 +84,10 @@ export function SignUpForm() {
         },
         onError: (ctx) => {
           setLoading(false);
-          setError({
-            show: true,
-            description: ctx.error.message,
-          });
-          toast.error("Erro ao realizar cadastro.", {
-            description: ctx.error.message,
+          console.log(ctx.error.code)
+          showError(getErrorMessage(ctx.error.code));
+          toast.error("Erro ao realizar cadastro", {
+            description: getErrorMessage(ctx.error.code),
           });
         },
       }
@@ -228,7 +225,7 @@ export function SignUpForm() {
         {error.show && (
           <Alert variant="destructive" className="mt-4">
             <AlertCircleIcon />
-            <AlertTitle>Erro ao realizar cadastro</AlertTitle>
+            <AlertTitle>Ops... Encontramos um problema</AlertTitle>
             <AlertDescription>{error.description}</AlertDescription>
           </Alert>
         )}
