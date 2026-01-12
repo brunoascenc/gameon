@@ -34,7 +34,7 @@ export function PasswordRequirements({ password }: PasswordRequirement) {
               {passed ? (
                 <CheckCircle2Icon size={18} className="text-green-600" />
               ) : (
-                <Circle size={18} />
+                <Circle size={18} className="text-neutral-400" />
               )}
               <span
                 className={passed ? "text-green-600" : "text-muted-foreground"}

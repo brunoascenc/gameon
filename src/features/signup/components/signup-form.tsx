@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { getErrorMessage, signUp } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -29,11 +29,21 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { useFormError } from "@/hooks/use-form-error";
 import { PasswordRequirements } from "./password-requirements";
+import { checkUsername } from "@/features/signup/server/actions/signup";
 
 const formSchema = z
   .object({
     email: z.email("E-mail inválido"),
-    username: z.string().min(1, "Username inválido"),
+    username: z
+      .string()
+      .min(3, "Nome de usuário inválido")
+      .refine(
+        async (val) => {
+          const res = await checkUsername(val);
+          return res.available;
+        },
+        { message: "Este nome de usuário já está em uso" }
+      ),
     name: z.string().min(4, "Nome inválido"),
     password: z
       .string()
@@ -54,6 +64,8 @@ const formSchema = z
 export function SignUpForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,6 +109,29 @@ export function SignUpForm() {
     );
   }
 
+  async function usernameValidation(username: string) {
+    if (username.length < 3) {
+      setIsValid(false);
+      return;
+    }
+
+    setIsValidating(true);
+    setIsValid(false);
+
+    const res = await checkUsername(username);
+
+    if (!res.available) {
+      form.setError("username", {
+        type: "manual",
+        message: "Este nome de usuário já está em uso",
+      });
+    } else {
+      setIsValid(true);
+      form.clearErrors("username");
+    }
+    setIsValidating(false);
+  }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -114,18 +149,21 @@ export function SignUpForm() {
         <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Controller
-              name="name"
+              name="username"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Input
                   {...field}
-                  id="name"
+                  id="username"
                   type="text"
                   aria-invalid={fieldState.invalid}
-                  label="Nome"
-                  placeholder="Digite o seu nome"
+                  label="Nome de usuário"
+                  placeholder="Digite seu nome de usuário"
                   autoComplete="new-password"
                   errors={fieldState.error}
+                  searchFunction={usernameValidation}
+                  loading={isValidating}
+                  approved={isValid}
                 />
               )}
             />
@@ -146,16 +184,16 @@ export function SignUpForm() {
               )}
             />
             <Controller
-              name="username"
+              name="name"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Input
                   {...field}
-                  id="username"
+                  id="name"
                   type="text"
                   aria-invalid={fieldState.invalid}
-                  label="Nome de usuário"
-                  placeholder="Digite seu nome de usuário"
+                  label="Nome"
+                  placeholder="Digite o seu nome"
                   autoComplete="new-password"
                   errors={fieldState.error}
                 />
@@ -238,7 +276,7 @@ export function SignUpForm() {
       </CardContent>
       <CardFooter className="flex-col gap-2">
         <Button
-          isLoading={loading}
+          isLoading={loading || form.formState.isValidating}
           type="submit"
           className="w-full"
           form="signup-form"

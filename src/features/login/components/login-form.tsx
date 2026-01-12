@@ -143,9 +143,9 @@ export function SignInForm() {
         >
           Entrar
         </Button>
-        <Button variant="outline" className="w-full">
+        {/* <Button variant="outline" className="w-full">
           Entrar com google
-        </Button>
+        </Button> */}
       </CardFooter>
     </Card>
   );
