@@ -1,5 +1,5 @@
 "use server"
-import { checkUsernameDb } from "@/features/signup/server/db/signup";
+import { checkUsernameDb } from "@/features/auth/signup/server/db/signup";
 
 export async function checkUsername(username: string) {
   if (!username || username.length < 3) return { available: false };

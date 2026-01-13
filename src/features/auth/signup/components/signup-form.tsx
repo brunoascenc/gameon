@@ -29,7 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { useFormError } from "@/hooks/use-form-error";
 import { PasswordRequirements } from "./password-requirements";
-import { checkUsername } from "@/features/signup/server/actions/signup";
+import { checkUsername } from "@/features/auth/signup/server/actions/signup";
 
 const formSchema = z
   .object({
