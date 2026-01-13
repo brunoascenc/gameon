@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Field, FieldError, FieldLabel } from "./field";
 import { FieldError as FieldErrorType } from "react-hook-form";
 import { Spinner } from "./spinner";
-import { Check } from "lucide-react";
+import { Check, SearchIcon } from "lucide-react";
 import { useDebouncedCallback } from "@/hooks/use-debounce-callback";
 
 function Input({
@@ -15,6 +15,7 @@ function Input({
   type,
   loading,
   approved,
+  search,
   searchFunction,
   ...props
 }: React.ComponentProps<"input"> & {
@@ -22,6 +23,7 @@ function Input({
   label?: React.ReactNode;
   loading?: boolean;
   approved?: boolean;
+  search?: boolean;
   searchFunction?: (value: string) => void;
 }) {
   const { debounced } = useDebouncedCallback((value: string) => {
@@ -52,6 +54,7 @@ function Input({
         />
         {errors && <FieldError errors={[errors]} />}
         {loading && <Spinner className="absolute right-2 top-[10px]" />}
+        {(search && !loading) && <SearchIcon className="text-muted-foreground size-4 absolute right-2 top-[10px]" />}
         {approved && (
           <Check
             size={18}
