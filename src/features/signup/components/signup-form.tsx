@@ -34,16 +34,7 @@ import { checkUsername } from "@/features/signup/server/actions/signup";
 const formSchema = z
   .object({
     email: z.email("E-mail inválido"),
-    username: z
-      .string()
-      .min(3, "Nome de usuário inválido")
-      .refine(
-        async (val) => {
-          const res = await checkUsername(val);
-          return res.available;
-        },
-        { message: "Este nome de usuário já está em uso" }
-      ),
+    username: z.string().min(3, "Nome de usuário inválido"),
     name: z.string().min(4, "Nome inválido"),
     password: z
       .string()
@@ -64,8 +55,8 @@ const formSchema = z
 export function SignUpForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isValid, setIsValid] = useState(false);
+  const [isUsernameChecking, setIsUsernameChecking] = useState(false);
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,11 +68,20 @@ export function SignUpForm() {
       name: "",
       terms: false,
     },
+    mode: "onSubmit",
   });
 
   const { error, showError } = useFormError(form.watch);
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
+    if (!isUsernameValid) {
+      form.setError("username", {
+        type: "manual",
+        message: "Valide o nome de usuário antes de continuar",
+      });
+      return;
+    }
+
     await signUp.email(
       {
         email: data.email,
@@ -111,25 +111,35 @@ export function SignUpForm() {
 
   async function usernameValidation(username: string) {
     if (username.length < 3) {
-      setIsValid(false);
+      setIsUsernameValid(false);
       return;
     }
 
-    setIsValidating(true);
-    setIsValid(false);
+    setIsUsernameChecking(true);
+    setIsUsernameValid(false);
 
-    const res = await checkUsername(username);
+    try {
+      const res = await checkUsername(username);
 
-    if (!res.available) {
+      if (!res.available) {
+        form.setError("username", {
+          type: "manual",
+          message: "Este nome de usuário já está em uso",
+        });
+      } else {
+        setIsUsernameValid(true);
+        form.clearErrors("username");
+      }
+    } catch (e) {
+      console.log(e);
+      setIsUsernameValid(false);
       form.setError("username", {
         type: "manual",
-        message: "Este nome de usuário já está em uso",
+        message: "Ocorreu um erro ao validar seu nome de usuário",
       });
-    } else {
-      setIsValid(true);
-      form.clearErrors("username");
+    } finally {
+      setIsUsernameChecking(false);
     }
-    setIsValidating(false);
   }
 
   return (
@@ -162,8 +172,8 @@ export function SignUpForm() {
                   autoComplete="new-password"
                   errors={fieldState.error}
                   searchFunction={usernameValidation}
-                  loading={isValidating}
-                  approved={isValid}
+                  loading={isUsernameChecking}
+                  approved={isUsernameValid}
                 />
               )}
             />

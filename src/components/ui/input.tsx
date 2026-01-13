@@ -26,7 +26,7 @@ function Input({
 }) {
   const { debounced } = useDebouncedCallback((value: string) => {
     searchFunction?.(value);
-  }, 600);
+  }, 400);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     props.onChange?.(e);
