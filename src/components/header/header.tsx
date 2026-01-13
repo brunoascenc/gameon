@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CircleCheckIcon, CircleHelpIcon, CircleIcon } from "lucide-react";
-
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   NavigationMenu,
@@ -16,6 +14,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -39,12 +38,14 @@ export function Header() {
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex items-center justify-between py-3">
-      <div>Logo</div>
-      <div className="w-100">
-        <Input placeholder="Pesquise seu jogo favorio..." search />
+    <header className="container flex items-center justify-between py-2">
+      <div>
+        <Image src="/logo.png" alt="LastSave" width={140} height={140} />
       </div>
       <NavigationMenu viewport={isMobile}>
+        {/* <div className="w-100">
+        <Input placeholder="Pesquise um jogo..." search />
+      </div> */}
         <NavigationMenuList className="flex-wrap">
           <NavigationMenuItem>
             <NavigationMenuLink
@@ -72,7 +73,7 @@ export function Header() {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <Link href="/login">
-              <Button variant="outline">Login</Button>
+              <Button variant="ghost">Login</Button>
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
